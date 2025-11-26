@@ -38,6 +38,7 @@ public class IssueController {
 	/*
 	 * API to get Issue details based on id 
 	 */
+	
 	@GetMapping("/get/{Id}")
 	public ResponseEntity<IssueResponse> getIssues(@PathVariable Long Id) {
 		IssueResponse issueResponses=issueService.getIssue(Id);
@@ -46,6 +47,7 @@ public class IssueController {
 	/*
 	 * API to get Issue details 
 	 */
+	
 	@GetMapping("/get")
 	public ResponseEntity<List<IssueResponse>> getData() {
 		 List<IssueResponse> response= issueService.getData();
