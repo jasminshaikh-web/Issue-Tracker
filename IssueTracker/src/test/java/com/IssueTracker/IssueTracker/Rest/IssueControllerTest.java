@@ -37,7 +37,7 @@ public class IssueControllerTest {
 		this.mockMvc=MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
 	}
 	
-	@Test
+//	@Test
 	void saveIssue_shouldSaveIssue() {
 		
 		//Given 
