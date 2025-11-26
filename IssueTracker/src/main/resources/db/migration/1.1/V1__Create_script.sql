@@ -1,8 +1,15 @@
--- Table: Issue.user
+-- SCHEMA: issue
 
--- DROP TABLE IF EXISTS "Issue"."user";
+-- DROP SCHEMA IF EXISTS issue ;
 
-CREATE TABLE IF NOT EXISTS "Issue"."user"
+CREATE SCHEMA IF NOT EXISTS issue
+    AUTHORIZATION postgres;
+	
+-- Table: issue.user
+
+-- DROP TABLE IF EXISTS issue.users;
+
+CREATE TABLE IF NOT EXISTS issue.users
 (
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY(INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2134562123 CACHE 1),
     name character varying COLLATE pg_catalog."default",
@@ -13,100 +20,100 @@ CREATE TABLE IF NOT EXISTS "Issue"."user"
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS "Issue"."user"
+ALTER TABLE IF EXISTS issue.users
     OWNER to postgres;
 
--- Table: Issue.team
+-- Table: issue.team
 
--- DROP TABLE IF EXISTS "Issue"."team";
+-- DROP TABLE IF EXISTS issue.team;
 
-CREATE TABLE IF NOT EXISTS "Issue"."team"
+CREATE TABLE IF NOT EXISTS issue.team
 (
-    id integer NOT NULL GENERATED ALWAYS AS IDENTITY(INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2134562123 CACHE 1),
-    name character varying COLLATE pg_catalog."default",
-    CONSTRAINT team_pkey PRIMARY KEY (id)
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY(INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2134562123 CACHE 1)PRIMARY KEY,
+    name character varying COLLATE pg_catalog."default"
+		)
+		
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS issue.team
+    OWNER to postgres;
+
+-- Table: issue.team_users
+
+-- DROP TABLE IF EXISTS issue.team_users;
+	
+CREATE TABLE IF NOT EXISTS issue.team_users (
+    team_id INT NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY(team_id) REFERENCES issue.team(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES issue.users(id) ON DELETE CASCADE,
+    UNIQUE(team_id, user_id)
+);
+
+ALTER TABLE IF EXISTS issue.team_users
+    OWNER to postgres;
+/* -- Table: issue.team_member
+
+-- DROP TABLE IF EXISTS issue.team_member;
+
+CREATE TABLE IF NOT EXISTS issue.team_member
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY(INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2134562123 CACHE 1) PRIMARY KEY,
+    team_id INT NOT NULL,
+    user_id INT NOT NULL,
+    CONSTRAINT fk_team
+        FOREIGN KEY (team_id)
+        REFERENCES issue.team (id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id)
+        REFERENCES issue.users (id)
+        ON DELETE CASCADE,
+    CONSTRAINT unique_team_user UNIQUE (team_id, user_id)	
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS "Issue"."team"
-    OWNER to postgres;
-	
--- Table: Issue.team_member
+ALTER TABLE IF EXISTS issue.team_member
+    OWNER to postgres; */
 
--- DROP TABLE IF EXISTS "Issue"."team_member";
+-- Table: issue.project
 
-CREATE TABLE IF NOT EXISTS "Issue"."team_member"
-(
-    team_id integer,
-	user_id integer,
-    CONSTRAINT team_member_pkey PRIMARY KEY (team_id,user_id),
-	CONSTRAINT team_id_fkey FOREIGN KEY (team_id)
-		REFERENCES "Issue"."team"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION,
-	CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
-		REFERENCES "Issue"."user"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION		
-)
+-- DROP TABLE IF EXISTS issue.project;
 
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS "Issue"."team_member"
-    OWNER to postgres;
-	
--- Table: Issue.project
-
--- DROP TABLE IF EXISTS "Issue".project;
-
-CREATE TABLE IF NOT EXISTS "Issue".project
+CREATE TABLE IF NOT EXISTS issue.project
 (
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY(INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2134562123 CACHE 1),
     name character varying COLLATE pg_catalog."default",
-    decription character varying,
+    description character varying,
 	created_by integer,
 	updated_by integer,
 	team_id integer,
     CONSTRAINT project_pkey PRIMARY KEY (id),
 	CONSTRAINT created_by_fkey FOREIGN KEY (created_by)
-		REFERENCES "Issue"."user"(id) MATCH SIMPLE
+		REFERENCES issue.users(id) MATCH SIMPLE
 		ON UPDATE NO ACTION
 		ON DELETE NO ACTION,
 	CONSTRAINT updated_by_fkey FOREIGN KEY (updated_by)
-		REFERENCES "Issue"."user"(id) MATCH SIMPLE
+		REFERENCES issue.users(id) MATCH SIMPLE
 		ON UPDATE NO ACTION
 		ON DELETE NO ACTION,
-	CONSTRAINT unique_issue UNIQUE (name)
-
+	CONSTRAINT unique_issue UNIQUE (name),
+	CONSTRAINT team_pkey FOREIGN KEY(team_id)
+	REFERENCES issue.team(id) MATCH SIMPLE
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
 )
-
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS "Issue".project
+ALTER TABLE IF EXISTS issue.project
     OWNER to postgres;
 	
--- Table: Issue.status
+-- Table: issue.issue
 
--- DROP TABLE IF EXISTS "Issue".status;
+-- DROP TABLE IF EXISTS issue.issue;
 
-CREATE TABLE IF NOT EXISTS "Issue".status
-(
-    id integer,
-    name character varying COLLATE pg_catalog."default",
-    CONSTRAINT status_pkey PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS "Issue".status
-    OWNER to postgres;
-	
--- Table: Issue.issue
-
--- DROP TABLE IF EXISTS "Issue".issue;
-
-CREATE TABLE IF NOT EXISTS "Issue".issue
+CREATE TABLE IF NOT EXISTS issue.issue
 (
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY(INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2134562123 CACHE 1),
     name character varying COLLATE pg_catalog."default",
@@ -118,34 +125,18 @@ CREATE TABLE IF NOT EXISTS "Issue".issue
 	created_by integer,
 	created_date TIMESTAMP(6) WITHOUT TIME ZONE,
 	activated_date TIMESTAMP(6) WITHOUT TIME ZONE,
-	project_id integer,
-    CONSTRAINT issue_pkey PRIMARY KEY (id),
-	CONSTRAINT created_by_fkey FOREIGN KEY (created_by)
-		REFERENCES "Issue"."user"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION,
-	CONSTRAINT assignee_id_fkey FOREIGN KEY (assignee_id)
-		REFERENCES "Issue"."user"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION,
-	CONSTRAINT reporter_id_fkey FOREIGN KEY (reporter_id)
-		REFERENCES "Issue"."user"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION,
-	CONSTRAINT project_id_fkey FOREIGN KEY (project_id)
-		REFERENCES "Issue"."project"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION,
-	CONSTRAINT status_id_fkey FOREIGN KEY (status_id)
-		REFERENCES "Issue"."status"(id) MATCH SIMPLE
-		ON UPDATE NO ACTION
-		ON DELETE NO ACTION,
-	CONSTRAINT unique_issue UNIQUE (id)
-
+    project_id INT NOT NULL,
+   CONSTRAINT fk_issue_project
+        FOREIGN KEY (project_id)
+        REFERENCES issue.project (id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_issue_assignee
+        FOREIGN KEY (assignee_id)
+        REFERENCES issue.users (id)
+        ON DELETE SET NULL
 )
-
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS "Issue".issue
+ALTER TABLE IF EXISTS issue.issue
     OWNER to postgres;
 	
